@@ -6,6 +6,7 @@
 #include "imgui_impl_dx9.h"
 #include "imgui_impl_win32.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "ImGuiFileDialog.h"
 #include <d3d9.h>
 #include <tchar.h>
 #include <string>
@@ -29,7 +30,9 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 //setup every thing here:
 void MainUI()
 {
-    static std::string name;
+    static std::string path;
+    static ImGuiFileDialog fileDialog;
+    
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowBorderSize = 0.f;
     ImGui::PushStyleColor(ImGuiCol_WindowBg, windowBgCd);
@@ -44,11 +47,12 @@ void MainUI()
     );
     ImGui::PopStyleColor();
 
-    if (ImGui::InputText("what is your name", &name))
+    //layout ui here:
+    ImGui::InputText("File Path", &path);
+    if (ImGui::Button("Select Path"))
     {
-        std::cout << "your name is: " << name << std::endl;
+        
     }
-
     ImGui::End();
 }
 

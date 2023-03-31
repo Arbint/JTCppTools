@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)Vendor\ImGui\backends;$(ProjectDir)Vendor\ImGui;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Vendor\ImGui\backends;$(ProjectDir)Vendor\ImGui;$(ProjectDir)Vendor\ImGuiFileDialog;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="Vendor\ImGuiFileDialog\ImGuiFileDialog.cpp" />
     <ClCompile Include="Vendor\ImGui\backends\imgui_impl_dx9.cpp" />
     <ClCompile Include="Vendor\ImGui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Vendor\ImGui\imgui.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="Vendor\ImGui\misc\cpp\imgui_stdlib.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Vendor\ImGuiFileDialog\ImGuiFileDialog.h" />
     <ClInclude Include="Vendor\ImGui\backends\imgui_impl_dx9.h" />
     <ClInclude Include="Vendor\ImGui\backends\imgui_impl_win32.h" />
     <ClInclude Include="Vendor\ImGui\imconfig.h" />

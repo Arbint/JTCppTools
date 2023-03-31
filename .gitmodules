@@ -1,3 +1,6 @@
 [submodule "JTCppTools/Vendor/ImGui"]
 	path = JTCppTools/Vendor/ImGui
 	url = https://github.com/ocornut/imgui.git
+[submodule "JTCppTools/Vendor/ImGuiFileDialog"]
+	path = JTCppTools/Vendor/ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog.git
