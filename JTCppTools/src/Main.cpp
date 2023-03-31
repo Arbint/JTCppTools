@@ -16,9 +16,10 @@ static LPDIRECT3D9              g_pD3D = NULL;
 static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
 static D3DPRESENT_PARAMETERS    g_d3dpp = {};
 
-static float windowWidth = 1280;
-static float windowHeight = 800;
+static float windowWidth = 330;
+static float windowHeight = 180;
 static ImVec2 windowSize{windowWidth, windowHeight};
+static ImVec2 btnSize{300, 50};
 static ImVec4 windowBgCd{0.1f, 0.1f, 0.1f, 1.f};
 
 // Forward declarations of helper functions
@@ -30,29 +31,60 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 //setup every thing here:
 void MainUI()
 {
-    static std::string path;
-    static ImGuiFileDialog fileDialog;
-    
+   
+    static std::string filePath;
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowBorderSize = 0.f;
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, windowBgCd);
-    ImGui::SetNextWindowPos(ImVec2(0,0));
-    ImGui::SetNextWindowSize(windowSize);
-    ImGui::Begin("window", nullptr, 
-        ImGuiWindowFlags_AlwaysAutoResize | 
-        ImGuiWindowFlags_NoResize | 
-        ImGuiWindowFlags_NoMove | 
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoDecoration
-    );
-    ImGui::PopStyleColor();
 
-    //layout ui here:
-    ImGui::InputText("File Path", &path);
-    if (ImGui::Button("Select Path"))
+    ImGuiViewport* mainViewPort = ImGui::GetMainViewport();
+    ImGui::SetNextWindowSize(mainViewPort->Size);
+    ImGui::SetNextWindowPos(mainViewPort->Pos);
+    
+    
+    ImGui::Begin("window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize
+    
+    );
+
+    
+
+    if (ImGui::Button(u8"选择文件夹", btnSize))
     {
-        
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", " ", nullptr, ".");
     }
+
+    if (ImGuiFileDialog::Instance()->Display("ChooseDirDlgKey"))
+    {
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            // action
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGui::Button(u8"导出...", btnSize))
+    {
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", " ", nullptr, ".");
+    }
+
+    if (ImGuiFileDialog::Instance()->Display("ChooseDirDlgKey"))
+    {
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            // action
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
     ImGui::End();
 }
 
@@ -86,7 +118,10 @@ int main(int, char**)
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    io.Fonts->AddFontFromFileTTF("c:/windows/fonts/simhei.ttf", 16, NULL, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
     //ImGui::StyleColorsLight();
+
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
@@ -135,10 +170,15 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+   
+
         MainUI();
+
 
         // Rendering
         ImGui::EndFrame();
+
+
         g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
@@ -155,6 +195,12 @@ int main(int, char**)
         // Handle loss of D3D9 device
         if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
             ResetDevice();
+
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
     }
 
     ImGui_ImplDX9_Shutdown();
