@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)Vendors\ImGui;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Vendor\ImGui\backends;$(ProjectDir)Vendor\ImGui;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -121,6 +121,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,6 +142,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="Vendor\ImGui\backends\imgui_impl_dx9.cpp" />
+    <ClCompile Include="Vendor\ImGui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="Vendor\ImGui\imgui.cpp" />
+    <ClCompile Include="Vendor\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Vendor\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Vendor\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Vendor\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Vendor\ImGui\misc\cpp\imgui_stdlib.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Vendor\ImGui\backends\imgui_impl_dx9.h" />
+    <ClInclude Include="Vendor\ImGui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="Vendor\ImGui\imconfig.h" />
+    <ClInclude Include="Vendor\ImGui\imgui.h" />
+    <ClInclude Include="Vendor\ImGui\imgui_internal.h" />
+    <ClInclude Include="Vendor\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Vendor\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Vendor\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Vendor\ImGui\misc\cpp\imgui_stdlib.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
