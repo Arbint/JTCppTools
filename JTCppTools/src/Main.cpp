@@ -11,6 +11,16 @@
 #include <tchar.h>
 #include <string>
 #include <iostream>
+#include <Windows.h>
+#include <Shlobj.h> 
+#include <Shlobj_core.h>
+#include <vector>
+#include <filesystem>
+#include <sstream>
+
+
+namespace fs = std::filesystem;
+
 // Data
 static LPDIRECT3D9              g_pD3D = NULL;
 static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
@@ -28,11 +38,62 @@ void CleanupDeviceD3D();
 void ResetDevice();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+std::string GetDesktopPath()
+{
+    char desktopPath[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_DESKTOPDIRECTORY, NULL, 0, desktopPath)))
+    {
+        std::string desktopDir{ desktopPath };
+        return desktopDir;
+    }
+    return "";
+}
+
+void GetAllFilesInDirectoryRecursive(const std::string& dir, std::vector<fs::directory_entry>& srcFiles)
+{
+    for (const auto& entry : fs::directory_iterator(dir))
+    {
+        if (entry.is_directory())
+        {
+            GetAllFilesInDirectoryRecursive(entry.path().string(), srcFiles);
+        }
+        else if(entry.is_regular_file())
+        {
+            srcFiles.push_back(entry);
+        }
+    }
+}
+
+void CopyFilesToDir(const std::vector<fs::directory_entry>& files, const std::string& dir)
+{
+    auto directory = dir + "\\";
+    for (const auto& entry : files)
+    {
+        //std::cout << "copying: " << entry.path().string() << ", to: " << directory + entry.path().filename().string() << std::endl;
+        fs::copy_file(entry.path().string(), directory + entry.path().filename().string());
+    }
+}
+
 //setup every thing here:
 void MainUI()
 {
-   
-    static std::string filePath;
+    static std::vector<fs::directory_entry> srcFiles;
+    static bool Begun = false;
+    static std::string inFilePathDir;
+    static std::string outFileDir;
+    static bool showPopup = false;
+
+    static ImGuiFileDialog searchDialog;
+    static ImGuiFileDialog copyDialog;
+    if (!Begun)
+    {
+        searchDialog.AddBookmark(u8"桌面", GetDesktopPath());
+        copyDialog.AddBookmark(u8"桌面", GetDesktopPath());
+        Begun = true;
+    }
+
+
+
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowBorderSize = 0.f;
 
@@ -41,52 +102,67 @@ void MainUI()
     ImGui::SetNextWindowPos(mainViewPort->Pos);
     
     
-    ImGui::Begin("window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize
-    
-    );
+    ImGui::Begin("window", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
     
-
     if (ImGui::Button(u8"选择文件夹", btnSize))
     {
-        ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", " ", nullptr, ".");
+        searchDialog.OpenDialog("ChooseDirDlgKey", u8"选择主文件夹", nullptr, ".");
     }
 
-    if (ImGuiFileDialog::Instance()->Display("ChooseDirDlgKey"))
+    if (searchDialog.Display("ChooseDirDlgKey"))
     {
         // action if OK
-        if (ImGuiFileDialog::Instance()->IsOk())
+        if (searchDialog.IsOk())
         {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            inFilePathDir = searchDialog.GetCurrentPath();
             // action
+            srcFiles.clear();
+            GetAllFilesInDirectoryRecursive(inFilePathDir, srcFiles);
+            showPopup = true;
         }
-
         // close
-        ImGuiFileDialog::Instance()->Close();
+        searchDialog.Close();
+    }
+
+    if (showPopup)
+    {
+        ImGui::SetNextWindowPos(ImGui::GetWindowPos());
+        ImGui::SetNextWindowSize(ImGui::GetWindowSize());
+        ImGui::Begin(u8"搜查结果", &showPopup, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
+        std::stringstream stringStream;
+        stringStream << u8"发现" << srcFiles.size() << u8"个文件:" << std::endl;
+        
+        std::string info = stringStream.str();
+        ImGui::Text(info.c_str());
+        if (ImGui::Button(u8"关闭"))
+            showPopup = false;
+        ImGui::End();
     }
 
     if (ImGui::Button(u8"导出...", btnSize))
     {
-        ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", " ", nullptr, ".");
+        copyDialog.OpenDialog("ChooseDirDlgKey", u8"选择导出位置", nullptr, ".");
     }
 
-    if (ImGuiFileDialog::Instance()->Display("ChooseDirDlgKey"))
+    if (copyDialog.Display("ChooseDirDlgKey"))
     {
         // action if OK
-        if (ImGuiFileDialog::Instance()->IsOk())
+        if (copyDialog.IsOk())
         {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+            outFileDir = copyDialog.GetCurrentPath();
             // action
+            CopyFilesToDir(srcFiles,outFileDir);
         }
 
         // close
-        ImGuiFileDialog::Instance()->Close();
+        copyDialog.Close();
     }
 
     ImGui::End();
 }
+
+
 
 // Main code
 int main(int, char**)
@@ -148,6 +224,8 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = windowBgCd;
 
+    ImGuiFileDialog::Instance()->AddBookmark(u8"桌面", GetDesktopPath());
+    
     // Main loop
     bool done = false;
     while (!done)
@@ -283,4 +361,13 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
     }
     return ::DefWindowProcW(hWnd, msg, wParam, lParam);
+}
+
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+    // Your application code goes here
+    main(0, nullptr);
+    return 0;
 }
